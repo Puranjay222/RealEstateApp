@@ -1,0 +1,154 @@
+/* static/css/login.css */
+
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+  --primary-color:   #003366;
+  --accent-color:    #ff6600;
+  --white:           #ffffff;
+  --bg-gradient:     linear-gradient(135deg, #dae2f8 0%, #d6a4a4 100%);
+  --text-color:      #222222;
+  --border-color:    #cccccc;
+  --input-bg:        #fafafa;
+  --error-bg:        #f8d7da;
+  --error-text:      #721c24;
+  --success-bg:      #d4edda;
+  --success-text:    #155724;
+  --shadow-light:    rgba(0, 0, 0, 0.05);
+  --shadow-dark:     rgba(0, 0, 0, 0.15);
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Roboto', sans-serif;
+  height: 100vh;
+  background: var(--bg-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wrapper */
+.login-wrapper {
+  width: 100%;
+  max-width: 380px;
+  padding: 1rem;
+}
+
+/* Card */
+.login-card {
+  background: var(--white);
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow:
+    0 4px 12px var(--shadow-light),
+    0 8px 24px var(--shadow-dark);
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.login-card h2 {
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+/* Flash messages */
+.flashes {
+  list-style: none;
+  margin-bottom: 1rem;
+}
+.flashes li {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+.flashes li.success {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+.flashes li.danger {
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
+/* Form fields */
+.login-card label {
+  display: block;
+  margin-bottom: 1rem;
+}
+.login-card label span {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+.login-card input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--input-bg);
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.login-card input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(0,51,102,0.1);
+}
+
+/* Submit */
+.login-card button {
+  width: 100%;
+  padding: 0.85rem;
+  margin-top: 0.5rem;
+  background: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 8px var(--shadow-light);
+  transition: background 0.3s, transform 0.1s, box-shadow 0.3s;
+}
+.login-card button:hover {
+  background: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--shadow-dark);
+}
+
+/* Footer link */
+.login-footer {
+  text-align: center;
+  margin-top: 1.2rem;
+}
+.login-footer a {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.login-footer a:hover {
+  color: var(--accent-color);
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  .login-card {
+    padding: 2rem 1.5rem;
+  }
+}

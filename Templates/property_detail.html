@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Property #{{ prop.propertyId }} – IndiaPropertyHub</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/property_detail.css') }}">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <h1 class="logo"><a href="{{ url_for('index') }}">IndiaPropertyHub</a></h1>
+      <nav class="site-nav">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('properties') }}">Manage</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO IMAGE -->
+  <section class="hero-image">
+    {% if images %}
+      <img src="{{ images[0].imageURL }}" alt="Main image of {{ prop.address }}">
+    {% endif %}
+  </section>
+
+  <div class="container detail-wrap">
+
+    <!-- IMAGE GALLERY -->
+    {% if images|length > 1 %}
+      <section class="gallery">
+        {% for img in images %}
+          <div class="thumb">
+            <img src="{{ img.imageURL }}" alt="Photo {{ loop.index }}">
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    <!-- OVERVIEW CARD -->
+    <section class="overview-card">
+      <h2>{{ prop.address }}</h2>
+      <p class="subhead">{{ prop.propertyType }} • {{ prop.city }}, {{ prop.state }}</p>
+      <p class="price">₹{{ "{:,.2f}".format(prop.price) }}</p>
+
+      <div class="details-grid">
+        <div><strong>Owner:</strong> {{ prop.ownerName }}</div>
+        <div><strong>Carpet Area:</strong> {{ prop.carpetArea }} sq ft</div>
+        <div><strong>RERA Registered:</strong> {{ 'Yes' if prop.reraRegistered else 'No' }}</div>
+        <div><strong>RERA Zone:</strong> {{ prop.reraZone }}</div>
+      </div>
+    </section>
+
+    <!-- SPECIFICS -->
+    {% if residential %}
+      <section class="specs-card">
+        <h3>Residential Details</h3>
+        <ul>
+          <li><strong>Bedrooms:</strong> {{ residential.bedrooms }}</li>
+          <li><strong>Bathrooms:</strong> {{ residential.bathrooms }}</li>
+          <li><strong>Floor:</strong> {{ residential.floor }} of {{ residential.totalFloors }}</li>
+          <li><strong>Vaastu Compliant:</strong> {{ 'Yes' if residential.vaastuCompliant else 'No' }}</li>
+        </ul>
+      </section>
+    {% elif commercial %}
+      <section class="specs-card">
+        <h3>Commercial Details</h3>
+        <ul>
+          <li><strong>Business Type:</strong> {{ commercial.businessType }}</li>
+          <li><strong>Floor:</strong> {{ commercial.floor }}</li>
+          <li><strong>Parking Slots:</strong> {{ commercial.parkingSlots }}</li>
+        </ul>
+      </section>
+    {% endif %}
+
+    <!-- AMENITIES & DOCUMENTS -->
+    <section class="info-row">
+      <div class="info-card">
+        <h3>Amenities</h3>
+        <ul>
+          {% for a in amenities %}
+            <li>{{ a.name }}: {{ a.description }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3>Documents</h3>
+        <ul>
+          {% for d in documents %}
+            <li>
+              {{ d.docType }} – {{ d.docNumber }}<br>
+              <small>Issued {{ d.issueDate.strftime('%d %b %Y') }} by {{ d.issuingAuthority }}</small>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
+    <!-- PRICING & AVAILABILITY -->
+    <section class="listings-card">
+      <h3>Pricing & Availability</h3>
+      {% for l in listings %}
+        <div class="listing-row">
+          <div><strong>List Price:</strong> ₹{{ "{:,.2f}".format(l.listPrice) }}</div>
+          <div><strong>Booking:</strong> ₹{{ l.bookingAmount or 'N/A' }}</div>
+          <div><strong>Maint. Charges:</strong> ₹{{ l.maintenanceCharges or 'N/A' }}</div>
+          <div><strong>Available From:</strong> {{ l.availableFrom.strftime('%d %b %Y') }}</div>
+        </div>
+      {% endfor %}
+    </section>
+
+  </div>
+
+</body>
+</html>

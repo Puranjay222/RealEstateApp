@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Discover Real Estate in India</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <h1 class="logo"><a href="{{ url_for('index') }}">IndiaPropertyHub</a></h1>
+      <nav class="site-nav">
+        <a href="{{ url_for('index') }}" class="active">Home</a>
+        {% if session.logged_in %}
+          <a href="{{ url_for('properties') }}">Manage</a>
+          <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <h2>Find Your Dream Property Across India</h2>
+      <p class="subhead">Apartments, Villas, Offices &amp; More — Search by city, budget or type.</p>
+      <form action="{{ url_for('index') }}" method="get" class="search-bar">
+        <input type="text" name="q" placeholder="Search properties…" value="{{ q|default('') }}">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- LISTINGS -->
+  <main class="container list-section">
+    <h3>Latest Listings</h3>
+    <div class="cards">
+      {% for p in properties %}
+        <a href="{{ url_for('property_detail', id=p.propertyId) }}" class="card">
+          <div class="card-image">
+            <img src="{{ p.primaryImage }}" alt="Image of {{ p.address }}">
+          </div>
+          <div class="card-body">
+            <h4>{{ p.address }}</h4>
+            <p class="meta">{{ p.propertyType }} &middot; {{ p.city }}, {{ p.state }}</p>
+            <p class="price">₹{{ "{:,.2f}".format(p.price) }}</p>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2025 IndiaPropertyHub. All rights reserved.</p>
+      <p>
+        <a href="#">About</a> |
+        <a href="#">Contact</a> |
+        <a href="#">Privacy</a>
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
