@@ -2,15 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login – Real Estate Portal</title>
+  <title>Login – IndiaPropertyHub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link
     rel="stylesheet"
-    href="{{ url_for('static', filename='css/login.css') }}">
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"
+  />
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/login.css') }}"
+  />
 </head>
 <body>
-  <div class="login-wrapper">
-    <form class="login-card" method="post" action="{{ url_for('login') }}">
+
+  <div class="login-wrapper" data-aos="zoom-in">
+    <form class="login-card animate__animated animate__fadeInUp" method="post" action="{{ url_for('login') }}">
       <h2>Welcome Back</h2>
 
       {% with msgs = get_flashed_messages(with_categories=true) %}
@@ -42,8 +53,15 @@
           required>
       </label>
 
-      <button type="submit">Log In</button>
+      <button type="submit" class="animate__animated animate__pulse animate__infinite">
+        Log In
+      </button>
     </form>
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({ duration:700, easing:'ease-out-quart', once:true });
+  </script>
 </body>
 </html>

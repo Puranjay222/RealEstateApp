@@ -25,6 +25,30 @@ body {
   color: var(--text-color);
 }
 
+/* global transition for buttons & cards */
+button,
+a.btn-add, .btn-edit, .btn-delete,
+.card, .login-card, .form-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+}
+
+button:hover,
+a.btn-add:hover, .btn-edit:hover, .btn-delete:hover,
+.card:hover, .login-card:hover, .form-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* subtle pulse on hero search */
+.search-bar:hover {
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1);   }
+  50%      { transform: scale(1.02);}
+}
+
 /* Header */
 .site-header {
   background: var(--white);

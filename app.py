@@ -123,10 +123,10 @@ def logout():
 # Manage Properties
 # -----------------------
 @app.route('/properties')
-@login_required
 def properties():
-    q = request.args.get('q','').strip()
+    q = request.args.get('q', '').strip()
     cur = mysql.connection.cursor()
+
     if q:
         cur.execute("""
           SELECT
@@ -148,7 +148,7 @@ def properties():
           JOIN IndianLocation IL ON P.locationId = IL.locationId
           WHERE P.address LIKE %s
           ORDER BY P.propertyId DESC
-        """, ('%'+q+'%',))
+        """, ('%' + q + '%',))
     else:
         cur.execute("""
           SELECT
@@ -172,6 +172,7 @@ def properties():
         """)
     props = cur.fetchall()
     cur.close()
+
     return render_template('properties.html', properties=props, q=q)
 
 # -----------------------
@@ -344,41 +345,54 @@ def delete_property(id):
 # Property Detail
 # -----------------------
 @app.route('/properties/<int:id>')
-@login_required
 def property_detail(id):
-    cur=mysql.connection.cursor()
+    cur = mysql.connection.cursor()
+
+    # Main property info
     cur.execute("""
         SELECT
-          P.propertyId,P.address,P.price,P.carpetArea,P.reraRegistered,
+          P.propertyId,
+          P.address,
+          P.price,
+          P.carpetArea,
+          P.reraRegistered,
           U.username   AS ownerName,
           PT.typeName  AS typeName,
-          IL.city,IL.state,IL.pincode,IL.reraZone
+          IL.city,
+          IL.state,
+          IL.pincode,
+          IL.reraZone
         FROM Property P
         JOIN Users U           ON P.ownerId    = U.userId
         JOIN PropertyType PT   ON P.typeId     = PT.typeId
         JOIN IndianLocation IL ON P.locationId = IL.locationId
-        WHERE P.propertyId=%s
-    """,(id,))
-    prop=cur.fetchone()
+        WHERE P.propertyId = %s
+    """, (id,))
+    prop = cur.fetchone()
 
-    cur.execute("SELECT * FROM ResidentialProperty WHERE propertyId=%s",(id,))
-    residential=cur.fetchone()
-    cur.execute("SELECT * FROM CommercialProperty WHERE propertyId=%s",(id,))
-    commercial=cur.fetchone()
-    cur.execute("SELECT * FROM Listing WHERE propertyId=%s",(id,))
-    listings=cur.fetchall()
-    cur.execute("SELECT * FROM PropertyImages WHERE propertyId=%s",(id,))
-    images=cur.fetchall()
-    cur.execute("SELECT * FROM PropertyDocuments WHERE propertyId=%s",(id,))
-    documents=cur.fetchall()
+    # Residential vs commercial specifics
+    cur.execute("SELECT * FROM ResidentialProperty WHERE propertyId = %s", (id,))
+    residential = cur.fetchone()
+    cur.execute("SELECT * FROM CommercialProperty WHERE propertyId = %s", (id,))
+    commercial = cur.fetchone()
+
+    # Listings, images, documents, amenities
+    cur.execute("SELECT * FROM Listing WHERE propertyId = %s", (id,))
+    listings = cur.fetchall()
+    cur.execute("SELECT * FROM PropertyImages WHERE propertyId = %s", (id,))
+    images = cur.fetchall()
+    cur.execute("SELECT * FROM PropertyDocuments WHERE propertyId = %s", (id,))
+    documents = cur.fetchall()
     cur.execute("""
         SELECT A.*
           FROM Amenities A
-          JOIN PropertyAmenities PA ON A.amenityId=PA.amenityId
-         WHERE PA.propertyId=%s
-    """,(id,))
-    amenities=cur.fetchall()
+          JOIN PropertyAmenities PA ON A.amenityId = PA.amenityId
+         WHERE PA.propertyId = %s
+    """, (id,))
+    amenities = cur.fetchall()
+
     cur.close()
+
     return render_template(
       'property_detail.html',
       prop=prop,

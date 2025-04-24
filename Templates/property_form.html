@@ -3,16 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>{{ action }} Property – IndiaPropertyHub</title>
+  <title>{{ action }} Property – IndiaPropertyHub</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"
+  />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/property_form.css') }}">
 </head>
 <body>
 
   <!-- HEADER -->
-  <header class="site-header">
+  <header class="site-header" data-aos="fade-down">
     <div class="container header-inner">
-      <h1 class="logo"><a href="{{ url_for('index') }}">IndiaPropertyHub</a></h1>
-      <nav class="site-nav">
+      <h1 class="logo animate__animated animate__fadeInLeft">
+        <a href="{{ url_for('index') }}">IndiaPropertyHub</a>
+      </h1>
+      <nav class="site-nav animate__animated animate__fadeInRight" data-aos="fade-down" data-aos-delay="100">
         <a href="{{ url_for('index') }}">Home</a>
         <a href="{{ url_for('properties') }}">Manage</a>
         <a href="{{ url_for('logout') }}">Logout</a>
@@ -21,7 +32,7 @@
   </header>
 
   <main class="container form-page">
-    <div class="form-card">
+    <div class="form-card animate__animated animate__fadeInUp" data-aos="fade-up">
       <h2>{{ action }} Property</h2>
 
       {% with msgs = get_flashed_messages(with_categories=true) %}
@@ -35,8 +46,8 @@
       {% endwith %}
 
       <form method="post" enctype="multipart/form-data">
-        <!-- OWNER SELECT -->
-        <div class="field">
+        <!-- Owner -->
+        <div class="field" data-aos="fade-right">
           <select id="ownerId" name="ownerId" required>
             <option value="" disabled {% if not property %}selected{% endif %}>Choose owner</option>
             {% for u in users %}
@@ -49,15 +60,15 @@
           <label for="ownerId">Owner</label>
         </div>
 
-        <!-- ADDRESS -->
-        <div class="field">
+        <!-- Address -->
+        <div class="field" data-aos="fade-right" data-aos-delay="100">
           <input id="address" name="address" type="text" required
                  value="{{ property.address if property }}" placeholder=" ">
           <label for="address">Address</label>
         </div>
 
-        <!-- PRICE & AREA -->
-        <div class="field two-col">
+        <!-- Price & Area -->
+        <div class="field two-col" data-aos="fade-right" data-aos-delay="200">
           <div>
             <input id="price" name="price" type="number" step="0.01" required
                    value="{{ property.price if property }}" placeholder=" ">
@@ -66,12 +77,12 @@
           <div>
             <input id="carpetArea" name="carpetArea" type="number" required
                    value="{{ property.carpetArea if property }}" placeholder=" ">
-            <label for="carpetArea">Carpet Area (sq ft)</label>
+            <label for="carpetArea">Carpet Area (sq ft)</label>
           </div>
         </div>
 
-        <!-- TYPE & CITY -->
-        <div class="field two-col">
+        <!-- Type & City -->
+        <div class="field two-col" data-aos="fade-right" data-aos-delay="300">
           <div>
             <select id="typeId" name="typeId" required>
               <option value="" disabled {% if not property %}selected{% endif %}>Choose type</option>
@@ -104,19 +115,19 @@
         </div>
 
         <!-- RERA -->
-        <div class="field checkbox-field">
+        <div class="field checkbox-field" data-aos="fade-right" data-aos-delay="400">
           <input type="checkbox" id="reraRegistered" name="reraRegistered"
             {% if property and property.reraRegistered %}checked{% endif %}>
           <label for="reraRegistered">RERA Registered</label>
         </div>
 
-        <!-- EXISTING IMAGES -->
+        <!-- Existing Images -->
         {% if property_images %}
-          <fieldset class="existing-images">
+          <fieldset class="existing-images" data-aos="fade-up" data-aos-delay="500">
             <legend>Existing Images</legend>
             <div class="thumbs">
               {% for img in property_images %}
-                <div class="thumb">
+                <div class="thumb animate__animated animate__fadeIn">
                   <img src="{{ img.imageURL }}" alt="Image {{ loop.index }}">
                   <label>
                     <input type="checkbox" name="delete_images" value="{{ img.imageId }}">
@@ -128,17 +139,23 @@
           </fieldset>
         {% endif %}
 
-        <!-- UPLOAD NEW -->
-        <fieldset class="upload-images">
+        <!-- Upload New Images -->
+        <fieldset class="upload-images" data-aos="fade-up" data-aos-delay="600">
           <legend>Upload New Images</legend>
           <input type="file" id="images" name="images" multiple accept="image/*">
         </fieldset>
 
-        <!-- SUBMIT -->
-        <button type="submit" class="btn-submit">{{ action }} Property</button>
+        <!-- Submit -->
+        <button type="submit" class="btn-submit animate__animated animate__pulse animate__infinite" data-aos="zoom-in" data-aos-delay="700">
+          {{ action }} Property
+        </button>
       </form>
     </div>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({ duration:700, easing:'ease-out-quart', once:true });
+  </script>
 </body>
 </html>
