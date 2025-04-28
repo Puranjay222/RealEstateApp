@@ -50,10 +50,49 @@
       <p class="subhead" data-aos="fade-up" data-aos-delay="200">
         Apartments, Villas, Offices &amp; More — Search by city, budget or type.
       </p>
-      <form action="{{ url_for('index') }}" method="get" class="search-bar" data-aos="fade-up" data-aos-delay="400">
-        <input type="text" name="q" placeholder="Search properties…" value="{{ q|default('') }}">
+      <form action="{{ url_for('index') }}" method="get" class="search-bar">
+        <input
+          type="text"
+          name="q"
+          placeholder="Search properties…"
+          value="{{ filters.q }}"
+        >
+      
+        <select name="city">
+          <option value="">All Cities</option>
+          {% for c in cities %}
+            <option value="{{ c }}" {% if filters.city == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      
+        <select name="type_id">
+          <option value="">All Types</option>
+          {% for t in types %}
+            <option
+              value="{{ t.typeId }}"
+              {% if filters.type_id == t.typeId|string %}selected{% endif %}
+            >
+              {{ t.typeName }}
+            </option>
+          {% endfor %}
+        </select>
+      
+        <select name="feature">
+          <option value="">All Features</option>
+          {% for a in amenities %}
+            <option
+              value="{{ a.amenityId }}"
+              {% if filters.feature == a.amenityId|string %}selected{% endif %}
+            >
+              {{ a.name }}
+            </option>
+          {% endfor %}
+        </select>
+      
+        <input type="hidden" name="mode" value="{{ filters.mode }}">
+      
         <button type="submit">Search</button>
-      </form>
+      </form>      
     </div>
   </section>
 
@@ -79,11 +118,16 @@
   <!-- FOOTER -->
   <footer class="site-footer" data-aos="fade-up">
     <div class="container">
-      <p>© 2025 IndiaPropertyHub. All rights reserved.</p>
-      <p>
-        <a href="#">About</a> |
-        <a href="#">Contact</a> |
-        <a href="#">Privacy</a>
+        <nav class="site-nav">
+          <a href="{{ url_for('index') }}">Home</a>
+          {% if session.logged_in %}
+            <a href="{{ url_for('properties') }}">Manage</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+          {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+          {% endif %}
+          <a href="{{ url_for('about') }}">About</a>
+        </nav>
       </p>
     </div>
   </footer>

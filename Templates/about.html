@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>About – IndiaPropertyHub</title>
+
+  <!-- Animate.css -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+  />
+
+  <!-- AOS for scroll-triggered effects -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"
+  />
+
+  <!-- Global styles -->
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/index.css') }}"
+  />
+
+  <!-- About-page overrides -->
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/about.css') }}"
+  />
+</head>
+<body class="about-page">
+
+  <!-- HEADER -->
+  <header class="site-header" data-aos="fade-down">
+    <div class="container header-inner">
+      <h1 class="logo animate__animated animate__fadeInLeft">
+        <a href="{{ url_for('index') }}">IndiaPropertyHub</a>
+      </h1>
+      <nav
+        class="site-nav animate__animated animate__fadeInRight"
+        data-aos="fade-down"
+        data-aos-delay="100"
+      >
+        <a href="{{ url_for('index') }}">Home</a>
+        {% if session.logged_in %}
+          <a href="{{ url_for('properties') }}">Manage</a>
+          <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+        <a href="{{ url_for('about') }}" class="active">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ABOUT CONTENT -->
+  <main class="about-container" data-aos="fade-up">
+    <h2>About IndiaPropertyHub</h2>
+    <p>
+      <strong>IndiaPropertyHub</strong> is your one-stop portal for discovering and managing real estate listings across India. Whether you’re looking to buy, rent, or list a property, our platform makes it fast and intuitive.
+    </p>
+
+    <h3>Key Features</h3>
+    <ul>
+      <li><strong>Powerful Search &amp; Filters:</strong> Search by keywords, city, property type, amenities or budget.</li>
+      <li><strong>Buy &amp; Rent Modes:</strong> Switch between sale and rent to see only relevant listings.</li>
+      <li><strong>High-Quality Listings:</strong> View multiple images, property details including area, RERA registration, and price history.</li>
+      <li><strong>User Accounts:</strong> Secure login for agents/admins to create, update, or delete listings.</li>
+      <li><strong>Responsive Design:</strong> Works seamlessly on mobile, tablet, and desktop.</li>
+      <li><strong>Future-Ready:</strong> Easily extendable for adding workflows like bookings, virtual tours, and more.</li>
+    </ul>
+
+    <h3>How It Works</h3>
+    <ol>
+      <li>Use the <em>Home</em> page to browse the latest listings.</li>
+      <li>Apply filters to narrow down by location, type or budget.</li>
+      <li>Click on any listing to view full details and high-resolution images.</li>
+      <li>Agents/Admins: <em>Login</em> to access the Manage panel and maintain your portfolio.</li>
+    </ol>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer" data-aos="fade-up">
+    <div class="container">
+      <p>© 2025 IndiaPropertyHub. All rights reserved.</p>
+      <p>
+        <a href="{{ url_for('about') }}">About</a> |
+        <a href="#">Contact</a> |
+        <a href="#">Privacy</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- AOS Init -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({ duration: 700, easing: 'ease-out-quart', once: true });
+  </script>
+</body>
+</html>

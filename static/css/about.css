@@ -1,0 +1,96 @@
+/* static/css/about.css */
+
+/* Import Roboto */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+  --primary:       #003366;
+  --accent:        #ff6600;
+  --bg-overlay:    rgba(255,255,255,0.85);
+  --text-dark:     #222222;
+  --text-muted:    #555555;
+  --border:        #e0e0e0;
+  --transition:    all 0.3s ease;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body.about-page {
+  /* full-page backdrop */
+  background:
+    url('/static/images/about-bg.jpg') center/cover no-repeat fixed;
+  font-family: 'Roboto', sans-serif;
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+/* Container floats above the backdrop */
+.about-container {
+  width: 90%;
+  max-width: 800px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: var(--bg-overlay);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  animation: fadeInUp 0.6s ease both;
+}
+
+/* FadeInUp keyframes */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Headings */
+.about-container h2 {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.about-container h3 {
+  font-size: 1.5rem;
+  color: var(--accent);
+  margin: 2rem 0 1rem;
+}
+
+/* Text */
+.about-container p {
+  margin-bottom: 1.25rem;
+}
+
+/* Lists */
+.about-container ul,
+.about-container ol {
+  margin: 0 0 1.25rem 1.5rem;
+}
+
+.about-container li {
+  margin-bottom: 0.75rem;
+}
+
+/* Links */
+.about-container a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.about-container a:hover {
+  color: var(--accent);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .about-container {
+    padding: 1rem;
+  }
+}

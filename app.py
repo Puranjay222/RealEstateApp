@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = 'replace_with_a_strong_random_key'
 
-# Single hard‑coded login
+# Single hard-coded login
 app.config['USERNAME'] = 'admin'
 app.config['PASSWORD'] = 'password'
 
@@ -44,18 +44,37 @@ def login_required(f):
     return decorated
 
 # -----------------------
-# Home (show all properties)
+# Home (show + filter all properties)
 # -----------------------
 @app.route('/')
 def index():
-    q = request.args.get('q','').strip()
+    # 1) grab filter values
+    q         = request.args.get('q',       '').strip()
+    city      = request.args.get('city',    '')
+    type_id   = request.args.get('type_id','')
+    feature   = request.args.get('feature','').strip()
+    min_price = request.args.get('min_price','')
+    max_price = request.args.get('max_price','')
+    mode      = request.args.get('mode',    'sale')
+
     cur = mysql.connection.cursor()
-    if q:
+
+    # 2) load dropdowns
+    cur.execute("SELECT DISTINCT city FROM IndianLocation ORDER BY city")
+    cities = [r['city'] for r in cur.fetchall()]
+    cur.execute("SELECT typeId, typeName FROM PropertyType ORDER BY typeName")
+    types = cur.fetchall()
+    # load features (amenities)
+    cur.execute("SELECT amenityId, name FROM Amenities ORDER BY name")
+    amenities = cur.fetchall()
+
+    # 3) if *no* filters, show *every* property
+    if not any([q, city, type_id, feature, min_price, max_price]):
         cur.execute("""
           SELECT
             P.propertyId,
             P.address,
-            PT.typeName      AS propertyType,
+            PT.typeName    AS propertyType,
             IL.city, IL.state,
             COALESCE(
               (SELECT imageURL
@@ -65,37 +84,126 @@ def index():
                 LIMIT 1),
               '/static/images/no-image.png'
             ) AS primaryImage,
-            P.price
+            COALESCE(L.listPrice, P.price) AS price,
+            L.availableFrom
           FROM Property P
-          JOIN PropertyType PT   ON P.typeId     = PT.typeId
-          JOIN IndianLocation IL ON P.locationId = IL.locationId
-          WHERE P.address LIKE %s
-          ORDER BY P.propertyId DESC
-        """, ('%'+q+'%',))
-    else:
-        cur.execute("""
-          SELECT
-            P.propertyId,
-            P.address,
-            PT.typeName      AS propertyType,
-            IL.city, IL.state,
-            COALESCE(
-              (SELECT imageURL
-                 FROM PropertyImages
-                WHERE propertyId = P.propertyId
-                ORDER BY isPrimary DESC, imageId ASC
-                LIMIT 1),
-              '/static/images/no-image.png'
-            ) AS primaryImage,
-            P.price
-          FROM Property P
-          JOIN PropertyType PT   ON P.typeId     = PT.typeId
-          JOIN IndianLocation IL ON P.locationId = IL.locationId
+          JOIN PropertyType    PT ON P.typeId     = PT.typeId
+          JOIN IndianLocation  IL ON P.locationId = IL.locationId
+          LEFT JOIN Listing    L  ON P.propertyId = L.propertyId
           ORDER BY P.propertyId DESC
         """)
+        properties = cur.fetchall()
+        cur.close()
+        return render_template(
+          'index.html',
+          properties=properties,
+          cities=cities,
+          types=types,
+          amenities=amenities,
+          filters={ 'q':'','city':'','type_id':'','feature':'','min_price':'','max_price':'','mode':mode }
+        )
+
+    # 4) otherwise, apply sale/rent filters
+    params = []
+    if mode == 'rent':
+        sql = """
+          SELECT DISTINCT
+            P.propertyId,
+            P.address,
+            PT.typeName    AS propertyType,
+            IL.city, IL.state,
+            COALESCE(
+              (SELECT imageURL
+                 FROM PropertyImages
+                WHERE propertyId = P.propertyId
+                ORDER BY isPrimary DESC, imageId ASC
+                LIMIT 1),
+              '/static/images/no-image.png'
+            ) AS primaryImage,
+            RA.monthlyRent AS price,
+            RA.startDate   AS availableFrom
+          FROM Property P
+          JOIN PropertyType    PT ON P.typeId     = PT.typeId
+          JOIN IndianLocation  IL ON P.locationId = IL.locationId
+          JOIN RentalAgreement RA ON P.propertyId = RA.propertyId
+          LEFT JOIN PropertyAmenities PA ON P.propertyId = PA.propertyId
+          LEFT JOIN Amenities A           ON PA.amenityId = A.amenityId
+          WHERE 
+            CURDATE() BETWEEN RA.startDate AND RA.endDate
+        """
+        if city:
+            sql += " AND IL.city = %s";        params.append(city)
+        if type_id:
+            sql += " AND P.typeId = %s";       params.append(type_id)
+        if min_price:
+            sql += " AND RA.monthlyRent >= %s";params.append(min_price)
+        if max_price:
+            sql += " AND RA.monthlyRent <= %s";params.append(max_price)
+        if q:
+            sql += " AND P.address LIKE %s";   params.append(f"%{q}%")
+        if feature:
+            sql += " AND A.amenityId = %s";    params.append(feature)
+        sql += " ORDER BY RA.startDate DESC"
+
+    else:  # sale
+        sql = """
+          SELECT DISTINCT
+            P.propertyId,
+            P.address,
+            PT.typeName    AS propertyType,
+            IL.city, IL.state,
+            COALESCE(
+              (SELECT imageURL
+                 FROM PropertyImages
+                WHERE propertyId = P.propertyId
+                ORDER BY isPrimary DESC, imageId ASC
+                LIMIT 1),
+              '/static/images/no-image.png'
+            ) AS primaryImage,
+            L.listPrice    AS price,
+            L.availableFrom
+          FROM Property P
+          JOIN PropertyType    PT ON P.typeId     = PT.typeId
+          JOIN IndianLocation  IL ON P.locationId = IL.locationId
+          JOIN Listing         L  ON P.propertyId = L.propertyId
+          LEFT JOIN PropertyAmenities PA ON P.propertyId = PA.propertyId
+          LEFT JOIN Amenities A           ON PA.amenityId = A.amenityId
+          WHERE 1=1
+        """
+        if city:
+            sql += " AND IL.city = %s";        params.append(city)
+        if type_id:
+            sql += " AND P.typeId = %s";       params.append(type_id)
+        if min_price:
+            sql += " AND L.listPrice >= %s";   params.append(min_price)
+        if max_price:
+            sql += " AND L.listPrice <= %s";   params.append(max_price)
+        if q:
+            sql += " AND P.address LIKE %s";   params.append(f"%{q}%")
+        if feature:
+            sql += " AND A.amenityId = %s";    params.append(feature)
+        sql += " ORDER BY L.availableFrom DESC"
+
+    cur.execute(sql, params)
     properties = cur.fetchall()
     cur.close()
-    return render_template('index.html', properties=properties, q=q)
+
+    return render_template(
+      'index.html',
+      properties=properties,
+      cities=cities,
+      types=types,
+      amenities=amenities,
+      filters={
+        'q':         q,
+        'city':      city,
+        'type_id':   type_id,
+        'feature':   feature,
+        'min_price': min_price,
+        'max_price': max_price,
+        'mode':      mode
+      }
+    )
 
 # -----------------------
 # Login / Logout
@@ -129,50 +237,49 @@ def properties():
 
     if q:
         cur.execute("""
-          SELECT
-            P.propertyId,
-            P.address,
-            PT.typeName       AS propertyType,
-            IL.city, IL.state,
-            COALESCE(
-              (SELECT imageURL
-                 FROM PropertyImages
-                WHERE propertyId = P.propertyId
-                ORDER BY isPrimary DESC, imageId ASC
-                LIMIT 1),
-              '/static/images/no-image.png'
-            ) AS primaryImage,
-            P.price
-          FROM Property P
-          JOIN PropertyType PT   ON P.typeId     = PT.typeId
-          JOIN IndianLocation IL ON P.locationId = IL.locationId
-          WHERE P.address LIKE %s
-          ORDER BY P.propertyId DESC
+            SELECT
+              P.propertyId,
+              P.address,
+              PT.typeName       AS propertyType,
+              IL.city, IL.state,
+              COALESCE(
+                (SELECT imageURL
+                   FROM PropertyImages
+                  WHERE propertyId = P.propertyId
+                  ORDER BY isPrimary DESC, imageId ASC
+                  LIMIT 1),
+                '/static/images/no-image.png'
+              ) AS primaryImage,
+              P.price
+            FROM Property P
+            JOIN PropertyType   PT ON P.typeId     = PT.typeId
+            JOIN IndianLocation IL ON P.locationId = IL.locationId
+            WHERE P.address LIKE %s
+            ORDER BY P.propertyId DESC
         """, ('%' + q + '%',))
     else:
         cur.execute("""
-          SELECT
-            P.propertyId,
-            P.address,
-            PT.typeName       AS propertyType,
-            IL.city, IL.state,
-            COALESCE(
-              (SELECT imageURL
-                 FROM PropertyImages
-                WHERE propertyId = P.propertyId
-                ORDER BY isPrimary DESC, imageId ASC
-                LIMIT 1),
-              '/static/images/no-image.png'
-            ) AS primaryImage,
-            P.price
-          FROM Property P
-          JOIN PropertyType PT   ON P.typeId     = PT.typeId
-          JOIN IndianLocation IL ON P.locationId = IL.locationId
-          ORDER BY P.propertyId DESC
+            SELECT
+              P.propertyId,
+              P.address,
+              PT.typeName       AS propertyType,
+              IL.city, IL.state,
+              COALESCE(
+                (SELECT imageURL
+                   FROM PropertyImages
+                  WHERE propertyId = P.propertyId
+                  ORDER BY isPrimary DESC, imageId ASC
+                  LIMIT 1),
+                '/static/images/no-image.png'
+              ) AS primaryImage,
+              P.price
+            FROM Property P
+            JOIN PropertyType   PT ON P.typeId     = PT.typeId
+            JOIN IndianLocation IL ON P.locationId = IL.locationId
+            ORDER BY P.propertyId DESC
         """)
     props = cur.fetchall()
     cur.close()
-
     return render_template('properties.html', properties=props, q=q)
 
 # -----------------------
@@ -186,14 +293,16 @@ def create_property():
     users = cur.fetchall()
     cur.execute("SELECT typeId, typeName FROM PropertyType")
     types = cur.fetchall()
+    # load all cities for dropdown
+    cur.execute("SELECT locationId, city FROM IndianLocation ORDER BY city")
+    cities = cur.fetchall()
     cur.close()
 
     if request.method=='POST':
-        # map city to locationId
         city = request.form['city']
         lid_cur = mysql.connection.cursor()
         lid_cur.execute(
-          "SELECT locationId FROM IndianLocation WHERE city=%s", (city,)
+            "SELECT locationId FROM IndianLocation WHERE city=%s", (city,)
         )
         loc = lid_cur.fetchone()
         if not loc:
@@ -219,33 +328,34 @@ def create_property():
         mysql.connection.commit()
         pid = cur.lastrowid
 
-        # uploads
+        # handle image uploads
         files = request.files.getlist('images')
-        folder = os.path.join(app.config['UPLOAD_FOLDER'],str(pid))
-        os.makedirs(folder,exist_ok=True)
-        for idx,file in enumerate(files):
+        folder = os.path.join(app.config['UPLOAD_FOLDER'], str(pid))
+        os.makedirs(folder, exist_ok=True)
+        for idx, file in enumerate(files):
             if file and allowed_file(file.filename):
-                fn=secure_filename(file.filename)
-                p=os.path.join(folder,fn)
-                file.save(p)
-                url=f'/static/uploads/{pid}/{fn}'
+                fn = secure_filename(file.filename)
+                path = os.path.join(folder, fn)
+                file.save(path)
+                url = f'/static/uploads/{pid}/{fn}'
                 cur.execute("""
                   INSERT INTO PropertyImages
                     (propertyId,imageURL,isPrimary)
                   VALUES (%s,%s,%s)
-                """,(pid,url, idx==0))
+                """, (pid, url, idx == 0))
         mysql.connection.commit()
         cur.close()
         flash("Created","success")
         return redirect(url_for('properties'))
 
     return render_template(
-      'property_form.html',
-      action='Create',
-      users=users,
-      types=types,
-      property=None,
-      property_images=[]
+        'property_form.html',
+        action='Create',
+        users=users,
+        types=types,
+        cities=cities,
+        property=None,
+        property_images=[]
     )
 
 # -----------------------
@@ -255,29 +365,39 @@ def create_property():
 @login_required
 def update_property(id):
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM Property WHERE propertyId=%s",(id,))
-    prop=cur.fetchone()
-    cur.execute("SELECT userId,username FROM Users")
-    users=cur.fetchall()
-    cur.execute("SELECT typeId,typeName FROM PropertyType")
-    types=cur.fetchall()
-    cur.execute("SELECT * FROM PropertyImages WHERE propertyId=%s",(id,))
-    imgs=cur.fetchall()
+    # include the current city name
+    cur.execute("""
+      SELECT P.*, IL.city
+        FROM Property P
+        JOIN IndianLocation IL ON P.locationId=IL.locationId
+       WHERE P.propertyId=%s
+    """, (id,))
+    prop = cur.fetchone()
+
+    cur.execute("SELECT userId, username FROM Users")
+    users = cur.fetchall()
+    cur.execute("SELECT typeId, typeName FROM PropertyType")
+    types = cur.fetchall()
+    cur.execute("SELECT * FROM PropertyImages WHERE propertyId=%s", (id,))
+    imgs = cur.fetchall()
+    # load all cities
+    cur.execute("SELECT locationId, city FROM IndianLocation ORDER BY city")
+    cities = cur.fetchall()
     cur.close()
 
     if request.method=='POST':
-        city=request.form['city']
-        lid_cur=mysql.connection.cursor()
+        city = request.form['city']
+        lid_cur = mysql.connection.cursor()
         lid_cur.execute(
-          "SELECT locationId FROM IndianLocation WHERE city=%s",(city,)
+          "SELECT locationId FROM IndianLocation WHERE city=%s", (city,)
         )
-        loc=lid_cur.fetchone()
+        loc = lid_cur.fetchone()
         if not loc:
             flash("City not in DB","danger")
             return redirect(request.url)
-        location_id=loc['locationId']
+        location_id = loc['locationId']
 
-        data=(
+        data = (
           request.form['address'],
           request.form['ownerId'],
           request.form['price'],
@@ -287,55 +407,56 @@ def update_property(id):
           1 if request.form.get('reraRegistered') else 0,
           id
         )
-        cur=mysql.connection.cursor()
+        cur = mysql.connection.cursor()
         cur.execute("""
           UPDATE Property SET
             address=%s,ownerId=%s,price=%s,carpetArea=%s,
             typeId=%s,locationId=%s,reraRegistered=%s
           WHERE propertyId=%s
-        """,data)
+        """, data)
 
-        # deletes
+        # delete any checked images
         for did in request.form.getlist('delete_images'):
             cur.execute("DELETE FROM PropertyImages WHERE imageId=%s",(did,))
-        # new uploads
-        files=request.files.getlist('images')
-        folder=os.path.join(app.config['UPLOAD_FOLDER'],str(id))
-        os.makedirs(folder,exist_ok=True)
+        # add new uploads
+        files = request.files.getlist('images')
+        folder = os.path.join(app.config['UPLOAD_FOLDER'], str(id))
+        os.makedirs(folder, exist_ok=True)
         for file in files:
             if file and allowed_file(file.filename):
-                fn=secure_filename(file.filename)
-                p=os.path.join(folder,fn)
-                file.save(p)
-                url=f'/static/uploads/{id}/{fn}'
+                fn = secure_filename(file.filename)
+                path = os.path.join(folder, fn)
+                file.save(path)
+                url = f'/static/uploads/{id}/{fn}'
                 cur.execute("""
                   INSERT INTO PropertyImages
                     (propertyId,imageURL,isPrimary)
                   VALUES (%s,%s,FALSE)
-                """,(id,url))
+                """, (id, url))
         mysql.connection.commit()
         cur.close()
         flash("Updated","success")
         return redirect(url_for('properties'))
 
     return render_template(
-      'property_form.html',
-      action='Update',
-      users=users,
-      types=types,
-      property=prop,
-      property_images=imgs
+        'property_form.html',
+        action='Update',
+        users=users,
+        types=types,
+        cities=cities,
+        property=prop,
+        property_images=imgs
     )
 
 # -----------------------
 # Delete Property
 # -----------------------
-@app.route('/properties/delete/<int:id>',methods=['POST'])
+@app.route('/properties/delete/<int:id>', methods=['POST'])
 @login_required
 def delete_property(id):
-    cur=mysql.connection.cursor()
-    cur.execute("DELETE FROM PropertyImages WHERE propertyId=%s",(id,))
-    cur.execute("DELETE FROM Property WHERE propertyId=%s",(id,))
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM PropertyImages WHERE propertyId=%s", (id,))
+    cur.execute("DELETE FROM Property WHERE propertyId=%s", (id,))
     mysql.connection.commit()
     cur.close()
     flash("Deleted","info")
@@ -348,7 +469,7 @@ def delete_property(id):
 def property_detail(id):
     cur = mysql.connection.cursor()
 
-    # Main property info
+    # main info + owner, type, location
     cur.execute("""
         SELECT
           P.propertyId,
@@ -370,13 +491,13 @@ def property_detail(id):
     """, (id,))
     prop = cur.fetchone()
 
-    # Residential vs commercial specifics
+    # residential vs commercial
     cur.execute("SELECT * FROM ResidentialProperty WHERE propertyId = %s", (id,))
     residential = cur.fetchone()
     cur.execute("SELECT * FROM CommercialProperty WHERE propertyId = %s", (id,))
     commercial = cur.fetchone()
 
-    # Listings, images, documents, amenities
+    # listings, images, docs, amenities
     cur.execute("SELECT * FROM Listing WHERE propertyId = %s", (id,))
     listings = cur.fetchall()
     cur.execute("SELECT * FROM PropertyImages WHERE propertyId = %s", (id,))
@@ -394,15 +515,19 @@ def property_detail(id):
     cur.close()
 
     return render_template(
-      'property_detail.html',
-      prop=prop,
-      residential=residential,
-      commercial=commercial,
-      listings=listings,
-      images=images,
-      documents=documents,
-      amenities=amenities
+        'property_detail.html',
+        prop=prop,
+        residential=residential,
+        commercial=commercial,
+        listings=listings,
+        images=images,
+        documents=documents,
+        amenities=amenities
     )
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 if __name__=='__main__':
     app.run(debug=True)

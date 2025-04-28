@@ -115,26 +115,66 @@ body {
 }
 
 /* Search Bar */
+/* Search Bar */
 .search-bar {
-  display:inline-flex; width:100%; max-width:600px;
-  border-radius:8px; overflow:hidden;
-  box-shadow:0 4px 12px var(--shadow-light);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px var(--shadow-light);
   transition: var(--transition);
+  background: var(--white);
+  padding: 0.5rem;
 }
+
 .search-bar:hover {
-  box-shadow:0 8px 24px var(--shadow-dark);
-  transform:translateY(-4px);
+  box-shadow: 0 8px 24px var(--shadow-dark);
+  transform: translateY(-4px);
 }
+
+/* Inputs & Selects */
+.search-bar input,
+.search-bar select {
+  padding: 0.75rem 1rem;
+  border: none;
+  font-size: 1rem;
+  background: var(--white);
+  color: var(--text);
+}
+
 .search-bar input {
-  flex:1; padding:.85rem 1rem; border:none; font-size:1rem;
+  flex: 2;
+  min-width: 150px;
 }
-.search-bar input:focus { outline:none; }
+
+.search-bar select {
+  flex: 1;
+  min-width: 120px;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+  outline: none;
+}
+
+/* Button */
 .search-bar button {
-  background:var(--accent); border:none; color:var(--white);
-  padding:0 1.75rem; cursor:pointer; font-weight:600;
+  flex: 0 0 auto;
+  background: var(--accent);
+  border: none;
+  color: var(--white);
+  padding: 0 1.75rem;
+  cursor: pointer;
+  font-weight: 600;
   transition: var(--transition);
 }
-.search-bar button:hover { background: var(--primary); }
+
+.search-bar button:hover {
+  background: var(--primary);
+}
 
 /* Listings */
 .list-section {
@@ -181,7 +221,7 @@ body {
 }
 .card-body h4 {
   margin:0 0 .5rem;
-  font-size:1.15rem; font-weight:600; line-height:1.3;
+  font-size:1.15rem; font-weight:600; line-height:1.3; color: var(--primary);
 }
 .card-body .meta {
   color: var(--muted); font-size:.9rem; margin-bottom:.75rem;

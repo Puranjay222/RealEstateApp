@@ -19,11 +19,33 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* static/css/property_form.css */
+
+/* … keep your :root and resets … */
+
 body {
   font-family: 'Roboto', sans-serif;
-  background: var(--bg-light);
+
+  /* full‐screen fixed background */
+  background: url('/static/images/property_form-bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+
   color: var(--text-color);
 }
+
+/* wrap the form in a semi-opaque white panel */
+.form-page {
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2.5rem;
+  border-radius: 8px;
+
+  /* center inside its container */
+  margin: 3rem auto;
+  max-width: 900px; /* match your .container width */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* the rest of your rules… */
 
 /* global transition for buttons & cards */
 button,
@@ -94,6 +116,7 @@ a.btn-add:hover, .btn-edit:hover, .btn-delete:hover,
   border-radius: 8px;
   box-shadow: 0 4px 12px var(--shadow);
   animation: fadeIn 0.4s ease-out;
+  position: relative;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
@@ -125,14 +148,24 @@ a.btn-add:hover, .btn-edit:hover, .btn-delete:hover,
 }
 
 /* Fields */
+/* Fields */
 .field {
   position: relative;
   margin-bottom: 1.5rem;
 }
+
+/* 1) Wrap each inner div in .field.two-col so labels float correctly */
 .field.two-col {
   display: flex;
   gap: 1rem;
 }
+.field.two-col > div {
+  position: relative;
+  flex: 1;               /* share space equally */
+  margin-bottom: 1.5rem; /* consistent spacing */
+}
+
+/* 2) Ensure input text is the dark body color */
 .field input,
 .field select {
   width: 100%;
@@ -140,9 +173,12 @@ a.btn-add:hover, .btn-edit:hover, .btn-delete:hover,
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--white);
+  color: var(--text-color);   /* force visible text */
   font-size: 1rem;
   outline: none;
 }
+
+/* 3) Float labels well clear of the text area */
 .field label {
   position: absolute;
   top: 50%;
@@ -158,7 +194,7 @@ a.btn-add:hover, .btn-edit:hover, .btn-delete:hover,
 .field input:not(:placeholder-shown) + label,
 .field select:focus + label,
 .field select:not([value=""]) + label {
-  top: -0.6rem;
+  top: -1rem;               /* lift it higher */
   left: 0.9rem;
   font-size: 0.85rem;
   color: var(--primary-color);
@@ -177,7 +213,16 @@ a.btn-add:hover, .btn-edit:hover, .btn-delete:hover,
 
 /* Existing images */
 .existing-images {
-  margin-bottom: 1.5rem;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 120px;       /* or whatever fits your thumbs */
+  margin: 0;          /* remove any bottom margin */
+  background: rgba(255,255,255,0.9); /* optional: white backing */
+  padding: 0.5rem;    /* optional: some breathing room */
+  border-radius: 6px; /* optional: match your form style */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 5;         /* ensure it floats above the form */
 }
 .existing-images legend {
   font-weight: 500;
@@ -220,23 +265,38 @@ a.btn-add:hover, .btn-edit:hover, .btn-delete:hover,
   margin-top: 0.5rem;
 }
 
-/* Submit */
+/* Submit Button */
 .btn-submit {
   display: block;
   width: 100%;
   padding: 0.85rem;
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
+  background-color: var(--accent-color);      /* bright accent */
+  color: var(--white);                        /* white text */
+  border: 2px solid var(--accent-color);      /* matching border */
   border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
   cursor: pointer;
-  transition: background 0.3s, transform 0.1s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition:
+    background-color 0.3s ease,
+    border-color     0.3s ease,
+    transform        0.1s ease,
+    box-shadow       0.2s ease;
 }
+
 .btn-submit:hover {
-  background: var(--accent-color);
-  transform: translateY(-2px);
+  background-color: var(--primary-color);     /* darker on hover */
+  border-color:     var(--primary-color);
+  transform:        translateY(-2px);
+  box-shadow:       0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-submit:focus {
+  outline:         none;
+  box-shadow:      0 0 0 3px rgba(0, 51, 102, 0.4); /* focus ring */
 }
 
 /* Responsive */
